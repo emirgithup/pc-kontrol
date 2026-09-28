@@ -42,7 +42,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: 🦀 Rust Kur
         uses: dtolnay/rust-toolchain@stable
@@ -55,7 +54,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: 📦 Node Bağımlılıkları Yükle
-        run: npm ci
+        run: npm install
 
       - name: 🔨 Frontend Build (Vite)
         run: npm run build
