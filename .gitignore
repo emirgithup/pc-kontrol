@@ -1,0 +1,28 @@
+# Bağımlılıklar
+node_modules/
+server/node_modules/
+
+# Build çıktıları
+dist/
+src-tauri/target/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Ortam değişkenleri
+.env
+.env.local
+.env.*.local
+
+# Log dosyaları
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Tauri geçici dosyalar
+src-tauri/.gitignore
