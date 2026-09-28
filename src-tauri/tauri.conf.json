@@ -1,0 +1,29 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "desklink",
+  "version": "1.0.0",
+  "identifier": "com.emir.desklink",
+  "build": {
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "DeskLink - Uzaktan Masaüstü Kontrolü",
+        "width": 1060,
+        "height": 680,
+        "minWidth": 880,
+        "minHeight": 580,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all"
+  }
+}

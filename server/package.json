@@ -1,0 +1,20 @@
+{
+  "name": "desklink-server",
+  "version": "2.0.0",
+  "description": "DeskLink WebRTC Signaling Server - Internet Edition",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["webrtc", "signaling", "remote-desktop"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}

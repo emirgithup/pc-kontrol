@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeskLink - Uzaktan Masaüstü Kontrolü</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/index-BVjz1vrF.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Bh5ft0EK.css">
+</head>
+<body class="dark-theme">
+  <!-- Ana Uygulama Konteyneri -->
+  <div id="app" class="app-layout">
+    
+    <!-- Üst Başlık ve Durum Çubuğu -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>DeskLink</h1>
+          <span class="version-badge">v1.0 Pro</span>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <div id="connectionStatusBadge" class="status-badge connecting">
+          <span class="status-dot"></span>
+          <span id="connectionStatusText">Sinyal Sunucusuna Bağlanıyor...</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnOpenSettings" class="icon-btn" title="Ayarlar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- İzin Uyarısı Banner (macOS Accessibility için) -->
+    <div id="permissionWarningBanner" class="permission-banner hidden">
+      <div class="banner-content">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>macOS'ta uzak kontrol için <strong>Erişilebilirlik (Accessibility)</strong> izni gereklidir.</span>
+      </div>
+      <button id="btnGrantPermission" class="btn-subtle">İzinleri Aç</button>
+    </div>
+
+    <!-- Ana Panel İçeriği (Gösterge Tablosu) -->
+    <main id="mainDashboard" class="main-dashboard">
+      <div class="dashboard-grid">
+        
+        <!-- Sol Panel: Bu Bilgisayar (Host) -->
+        <section class="card host-card">
+          <div class="card-header">
+            <div class="card-tag">BU BİLGİSAYAR</div>
+            <h2>Bu Masaüstü</h2>
+            <p class="card-subtext">Diğer cihazların bu bilgisayara bağlanabilmesi için aşağıdaki adresi paylaşın.</p>
+          </div>
+
+          <div class="device-id-container">
+            <label class="input-label">Masaüstü Adresiniz (ID)</label>
+            <div class="id-display-box">
+              <span id="myDeviceId" class="id-number">... ... ...</span>
+              <button id="btnCopyId" class="btn-copy" title="Adresi Kopyala">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Kopyala</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="password-box">
+            <div class="password-header">
+              <label class="input-label">Tek Seferlik Parola (PIN)</label>
+              <button id="btnRefreshPassword" class="btn-text-action" title="Yeni PIN üret">Yenile</button>
+            </div>
+            <div class="password-input-group">
+              <input type="text" id="myTempPassword" class="password-input" readonly value="------" />
+              <button id="btnTogglePassword" class="btn-icon-inside" title="Göster/Gizle">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <span class="hint-text">Gelen bağlantılarda manuel onay yerine bu şifre ile doğrudan erişilebilir.</span>
+          </div>
+
+          <div class="device-meta-list">
+            <div class="meta-item">
+              <span class="meta-label">Cihaz Adı:</span>
+              <span id="myDeviceName" class="meta-val">Yükleniyor...</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">İşletim Sistemi:</span>
+              <span id="myDeviceOs" class="meta-val badge-os">macOS</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Ana Ekran:</span>
+              <span id="myDisplayRes" class="meta-val">1920x1080</span>
+            </div>
+          </div>
+
+          <div class="host-ready-indicator">
+            <span class="pulse-ring"></span>
+            <span>Gelen bağlantılar bekleniyor</span>
+          </div>
+        </section>
+
+        <!-- Sağ Panel: Uzak Masaya Bağlan (Client) -->
+        <section class="card client-card">
+          <div class="card-header">
+            <div class="card-tag connect-tag">UZAK MASAYA BAĞLAN</div>
+            <h2>Uzak Masaüstü</h2>
+            <p class="card-subtext">Kontrol etmek istediğiniz bilgisayarın 9 haneli adresini girin.</p>
+          </div>
+
+          <div class="connect-form">
+            <div class="form-group">
+              <label class="input-label" for="targetIdInput">Hedef Masaüstü ID</label>
+              <div class="input-wrapper">
+                <input 
+                  type="text" 
+                  id="targetIdInput" 
+                  class="styled-input id-input" 
+                  placeholder="örn: 482 910 234" 
+                  maxlength="11" 
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <button id="btnClearTargetId" class="btn-clear hidden">&times;</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="input-label" for="targetPasswordInput">Parola / PIN <span class="optional-tag">(Hedef şifre korumalıysa)</span></label>
+              <input 
+                type="password" 
+                id="targetPasswordInput" 
+                class="styled-input" 
+                placeholder="İsteğe bağlı şifre" 
+              />
+            </div>
+
+            <button id="btnConnect" class="btn-primary-action">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Bağlantı Başlat</span>
+            </button>
+          </div>
+
+          <!-- Son Oturumlar / Geçmiş -->
+          <div class="recent-sessions-area">
+            <div class="recent-header">
+              <h3>Son Bağlantılar</h3>
+              <button id="btnClearRecent" class="btn-text-action">Temizle</button>
+            </div>
+            <div id="recentList" class="recent-list">
+              <div class="empty-recent">Henüz kayıtlı bir oturum bulunmuyor.</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Aktif Oturum Alanı (Görüntüleyici / Remote Viewer) -->
+    <div id="sessionViewer" class="session-viewer hidden">
+      <!-- Üst Araç Çubuğu (AnyDesk Toolbar) -->
+      <nav class="session-toolbar" id="sessionToolbar">
+        <div class="toolbar-drag-handle">⋮⋮</div>
+        
+        <div class="toolbar-info">
+          <span class="session-dot live"></span>
+          <span id="remotePeerTitle" class="remote-title">Uzak Masaüstü</span>
+          <span id="latencyBadge" class="latency-badge">12 ms</span>
+          <span id="fpsBadge" class="fps-badge">60 FPS</span>
+        </div>
+
+        <div class="toolbar-controls">
+          <button id="btnScaleToggle" class="toolbar-btn" title="Görünüm Boyutu: Ekrana Sığdır / 1:1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            <span id="scaleModeLabel">Sığdır</span>
+          </button>
+
+          <button id="btnSendCad" class="toolbar-btn" title="Ctrl + Alt + Del Gönder">
+            <span>CAD</span>
+          </button>
+
+          <button id="btnToggleKeyboardLock" class="toolbar-btn active" title="Klavye Girişini Aktar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+              <line x1="6" y1="8" x2="6.01" y2="8"></line>
+              <line x1="10" y1="8" x2="10.01" y2="8"></line>
+              <line x1="14" y1="8" x2="14.01" y2="8"></line>
+              <line x1="18" y1="8" x2="18.01" y2="8"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+          </button>
+
+          <button id="btnSyncClipboard" class="toolbar-btn" title="Panoyu Eşitle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+          </button>
+
+          <button id="btnToggleFullscreen" class="toolbar-btn" title="Tam Ekran">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          </button>
+
+          <div class="toolbar-divider"></div>
+
+          <button id="btnDisconnectSession" class="toolbar-btn btn-danger" title="Oturumu Sonlandır">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <span>Bağlantıyı Kes</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Video Konteyneri -->
+      <div class="remote-viewport" id="remoteViewport">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div id="cursorOverlay" class="cursor-overlay"></div>
+      </div>
+    </div>
+
+    <!-- Host İken Aktif Oturum Alt Göstergesi (Floating Bar) -->
+    <div id="hostActiveSessionBar" class="host-active-bar hidden">
+      <div class="bar-left">
+        <span class="recording-pulse"></span>
+        <span>Bu bilgisayar uzaktan yönetiliyor: <strong id="connectedClientLabel">İstemci</strong></span>
+      </div>
+      <div class="bar-right">
+        <button id="btnHostDisconnect" class="btn-danger-sm">Oturumu Kapat</button>
+      </div>
+    </div>
+
+    <!-- Gelen Bağlantı Onay Modalı (AnyDesk Dialog) -->
+    <dialog id="incomingDialog" class="modal-dialog">
+      <div class="modal-box">
+        <div class="modal-icon-ring">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+        </div>
+        
+        <h2>Gelen Bağlantı İsteği</h2>
+        <p class="modal-desc"><strong id="incomingRequesterName">Bilinmeyen Cihaz</strong> bu bilgisayara bağlanmak ve ekranınızı görmek istiyor.</p>
+
+        <div class="permissions-checklist">
+          <label class="check-item">
+            <input type="checkbox" id="permControl" checked />
+            <span>Fare ve Klavye Kontrolü Ver</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="permAudio" checked />
+            <span>Sistem Sesini Aktar</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="permClipboard" checked />
+            <span>Pano (Kopyala/Yapıştır) Senkronizasyonu</span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btnRejectConnection" class="btn-modal-reject">
+            <span>Reddet</span>
+          </button>
+          <button id="btnAcceptConnection" class="btn-modal-accept">
+            <span>Kabul Et</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Ayarlar Modalı -->
+    <dialog id="settingsDialog" class="modal-dialog">
+      <div class="modal-box settings-modal-box">
+        <div class="settings-header">
+          <h2>Ayarlar & Yapılandırma</h2>
+          <button id="btnCloseSettings" class="btn-close">&times;</button>
+        </div>
+
+        <div class="settings-body">
+          <div class="setting-group">
+            <label class="input-label" for="settingServerUrl">Sinyal Sunucusu (Signaling WebSocket URL)</label>
+            <input type="text" id="settingServerUrl" class="styled-input" placeholder="wss://sizin-sunucunuz.railway.app" />
+            <span class="hint-text">🌐 <strong>İnternet üzerinden bağlantı için:</strong> Signaling sunucunuzu Railway/Render'a deploy edin ve wss:// adresini buraya yazın. Yerel test için <code>ws://localhost:9000</code> kullanın.</span>
+          </div>
+
+          <div class="setting-group">
+            <label class="input-label" for="settingStunServer">STUN Sunucusu</label>
+            <input type="text" id="settingStunServer" class="styled-input" value="stun:stun.l.google.com:19302" />
+            <span class="hint-text">NAT ve güvenlik duvarlarını aşmak için kullanılan STUN sunucusu.</span>
+          </div>
+
+          <div class="setting-group">
+            <label class="input-label" for="settingStaticPassword">Sabit Şifre (Katılımsız Erişim - Unattended Access)</label>
+            <input type="password" id="settingStaticPassword" class="styled-input" placeholder="Boş bırakılırsa katılımsız erişim kapalıdır" />
+            <span class="hint-text">Bu şifre tanımlanırsa karşı taraf onay beklemeden doğrudan bağlanabilir.</span>
+          </div>
+
+          <div class="setting-group">
+            <label class="input-label">Görüntü Kalitesi & FPS</label>
+            <select id="settingQuality" class="styled-select">
+              <option value="60fps-smooth" selected>Ultra Akıcı (60 FPS - Düşük Gecikme)</option>
+              <option value="30fps-balanced">Dengeli (30 FPS - Düşük Bant Genişliği)</option>
+              <option value="high-res">Yüksek Çözünürlük (Görsel Netlik Öncelikli)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-footer">
+          <button id="btnSaveSettings" class="btn-primary-action">Ayarları Kaydet</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Bildirim Toast Alanı -->
+    <div id="toastContainer" class="toast-container"></div>
+
+  </div>
+
+</body>
+</html>
