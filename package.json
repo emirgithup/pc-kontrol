@@ -1,6 +1,6 @@
 {
   "name": "desklink",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "AnyDesk benzeri cross-platform WebRTC & Tauri uzaktan masaüstü kontrol uygulaması",
   "scripts": {

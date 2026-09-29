@@ -35,7 +35,7 @@ fn simulate_input(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let input_manager = InputManager::new().expect("Input yöneticisi başlatılamadı");
+    let input_manager = InputManager::new();
 
     tauri::Builder::default()
         .manage(input_manager)

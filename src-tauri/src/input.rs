@@ -32,20 +32,25 @@ pub enum InputEvent {
 }
 
 pub struct InputManager {
-    enigo: Mutex<Enigo>,
+    enigo: Mutex<Option<Enigo>>,
 }
 
 impl InputManager {
-    pub fn new() -> Result<Self, String> {
-        let enigo = Enigo::new(&Settings::default())
-            .map_err(|e| format!("Enigo başlatılamadı: {:?}", e))?;
-        Ok(Self {
+    pub fn new() -> Self {
+        let enigo = Enigo::new(&Settings::default()).ok();
+        Self {
             enigo: Mutex::new(enigo),
-        })
+        }
     }
 
     pub fn handle_event(&self, event: InputEvent) -> Result<(), String> {
-        let mut enigo = self.enigo.lock().map_err(|_| "Enigo kilitlenemedi")?;
+        let mut enigo_guard = self.enigo.lock().map_err(|_| "Enigo kilitlenemedi")?;
+
+        if enigo_guard.is_none() {
+            *enigo_guard = Enigo::new(&Settings::default()).ok();
+        }
+
+        let enigo = enigo_guard.as_mut().ok_or("Erişilebilirlik (Accessibility) izni verilmedi. Lütfen sistem ayarlarından DeskLink'e izin verin.")?;
 
         match event {
             InputEvent::MouseMove { x, y, display_id } => {
