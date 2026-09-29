@@ -3,7 +3,7 @@ services:
     name: desklink-signaling
     runtime: node
     plan: free
-    region: fra
+    region: frankfurt
     rootDir: server
     buildCommand: npm install --omit=dev
     startCommand: npm start
