@@ -2,8 +2,47 @@
  * DeskLink - E2E Sinyal ve WebRTC Protokol Doğrulama Testi
  */
 import WebSocket from './server/node_modules/ws/index.js';
+import { fork } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const SERVER_URL = 'ws://localhost:9000';
+
+let serverChild = null;
+
+async function ensureServerRunning() {
+  try {
+    const ws = new WebSocket(SERVER_URL);
+    await new Promise((resolve, reject) => {
+      ws.on('open', () => { ws.close(); resolve(); });
+      ws.on('error', reject);
+    });
+    console.log('📡 Mevcut çalışan sinyal sunucusu algılandı.');
+    return;
+  } catch (e) {
+    console.log('⏳ Sinyal sunucusu başlatılıyor...');
+    const serverPath = path.join(__dirname, 'server', 'src', 'server.js');
+    serverChild = fork(serverPath, [], { stdio: 'inherit' });
+    
+    for (let i = 0; i < 25; i++) {
+      await new Promise(r => setTimeout(r, 200));
+      try {
+        const ws = new WebSocket(SERVER_URL);
+        const ready = await new Promise((resolve) => {
+          ws.on('open', () => { ws.close(); resolve(true); });
+          ws.on('error', () => resolve(false));
+        });
+        if (ready) {
+          console.log('✅ Sinyal sunucusu hazır.');
+          return;
+        }
+      } catch (err) {}
+    }
+    throw new Error('Sinyal sunucusu başlatılamadı!');
+  }
+}
 
 function createClient(name) {
   return new Promise((resolve, reject) => {
@@ -15,6 +54,7 @@ function createClient(name) {
 
 async function runTest() {
   console.log('🧪 DeskLink E2E Protokol Testi Başlatılıyor...');
+  await ensureServerRunning();
 
   // 1. İki istemci oluştur (Host ve Controller)
   const hostWs = await createClient('Host');
@@ -114,11 +154,18 @@ async function runTest() {
   hostWs.close();
   clientWs.close();
 
+  if (serverChild) {
+    serverChild.kill();
+  }
+
   console.log('🎯 TÜM TESTLER BAŞARIYLA GEÇTİ! Sinyal ve eşleşme protokolü %100 çalışıyor.');
   process.exit(0);
 }
 
 runTest().catch(err => {
+  if (serverChild) {
+    serverChild.kill();
+  }
   console.error('❌ Test Hatası:', err);
   process.exit(1);
 });

@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Bağımlılıkları yükle
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Kaynak kodu kopyala
 COPY src/ ./src/

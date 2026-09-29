@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: desklink-signaling
+    runtime: node
+    plan: free
+    region: fra
+    rootDir: server
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

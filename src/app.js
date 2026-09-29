@@ -150,8 +150,7 @@ function initWebRTC() {
   // Varsayılan sunucu: Deploy edilmiş signaling sunucusu
   // Kendi sunucunuzu deploy ettikten sonra bu URL'i ayarlardan değiştirin.
   // Railway deploy: railway up (server/ klasörü)
-  // Render deploy: render.com > New Web Service > server/
-  const DEFAULT_SERVER = 'wss://desklink-server.up.railway.app';
+  const DEFAULT_SERVER = 'wss://desklink-live.loca.lt';
   const savedServer = localStorage.getItem('desklink_server_url') || DEFAULT_SERVER;
   const savedStun = localStorage.getItem('desklink_stun_server') || 'stun:stun.l.google.com:19302';
   const staticPass = localStorage.getItem('desklink_static_password') || mySystemInfo.temp_password;
