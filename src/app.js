@@ -197,7 +197,13 @@ function initWebRTC() {
     },
 
     onRemoteStream: (stream) => {
+      console.log('[App] Uzak akış alındı, video elementine atanıyor:', stream.getTracks());
       remoteVideo.srcObject = stream;
+      remoteVideo.play().catch(err => {
+        console.warn('Autoplay kısıtlaması, video sessiz modda başlatılıyor:', err);
+        remoteVideo.muted = true;
+        remoteVideo.play();
+      });
     },
 
     onDataMessage: (msg) => {

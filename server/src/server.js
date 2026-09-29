@@ -298,6 +298,15 @@ wss.on('connection', (ws, req) => {
             }
           });
 
+          safeSend(requesterPeer.socket, {
+            type: 'session-started',
+            payload: {
+              withPeerId: currentPeerId,
+              targetId: currentPeerId,
+              permissions: permissions || { control: true, audio: true, clipboard: true }
+            }
+          });
+
           safeSend(ws, {
             type: 'session-started',
             payload: {

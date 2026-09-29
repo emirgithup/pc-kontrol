@@ -93,8 +93,9 @@ export class DeskLinkWebRTC {
           break;
 
         case 'connect-accepted':
-          // Hedef istek onaylandı, WebRTC bağlantısını kur
           console.log('[WebRTC] İsteğimiz kabul edildi, PeerConnection kuruluyor...');
+          this.activeSessionWith = payload.targetId;
+          this.onSessionStarted({ targetId: payload.targetId, ...payload });
           await this.initiateWebRtcAsClient(payload.targetId);
           break;
 
@@ -193,18 +194,26 @@ export class DeskLinkWebRTC {
 
     try {
       // Ekranı yakala (60 FPS, donanım hızlandırmalı)
-      this.localStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          frameRate: { ideal: 60, max: 60 },
-          cursor: 'always',
-          displaySurface: 'monitor'
-        },
-        audio: permissions.audio ? {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
-        } : false
-      });
+      try {
+        this.localStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            frameRate: { ideal: 60, max: 60 },
+            cursor: 'always',
+            displaySurface: 'monitor'
+          },
+          audio: permissions.audio ? true : false
+        });
+      } catch (audioErr) {
+        console.warn('[Host] Ses ile yakalama desteklenmiyor, sadece video ile devam ediliyor:', audioErr);
+        this.localStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            frameRate: { ideal: 60, max: 60 },
+            cursor: 'always',
+            displaySurface: 'monitor'
+          },
+          audio: false
+        });
+      }
 
       // Kullanıcı ekran paylaşımını sistem penceresinden durdurursa
       this.localStream.getVideoTracks()[0].onended = () => {
@@ -254,20 +263,6 @@ export class DeskLinkWebRTC {
    */
   async initiateWebRtcAsClient(targetId) {
     this.setupPeerConnection(targetId);
-
-    // İstemci DataChannel dinler
-    this.peerConnection.ondatachannel = (event) => {
-      this.dataChannel = event.channel;
-      this.setupDataChannel(this.dataChannel);
-    };
-
-    // Karşıdan gelen video akışını dinle
-    this.peerConnection.ontrack = (event) => {
-      console.log('[WebRTC] Uzak video/ses akışı alındı!');
-      if (event.streams && event.streams[0]) {
-        this.onRemoteStream(event.streams[0]);
-      }
-    };
   }
 
   setupPeerConnection(targetId) {
@@ -275,10 +270,33 @@ export class DeskLinkWebRTC {
       this.peerConnection.close();
     }
 
+    this.remoteStream = null;
+
     this.peerConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
       iceCandidatePoolSize: 4
     });
+
+    // Karşıdan gelen video/ses akışını dinle
+    this.peerConnection.ontrack = (event) => {
+      console.log('[WebRTC] ontrack akış izi alındı:', event.track.kind);
+      if (event.streams && event.streams[0]) {
+        this.onRemoteStream(event.streams[0]);
+      } else {
+        if (!this.remoteStream) {
+          this.remoteStream = new MediaStream();
+        }
+        this.remoteStream.addTrack(event.track);
+        this.onRemoteStream(this.remoteStream);
+      }
+    };
+
+    // DataChannel dinle (Client rolü için)
+    this.peerConnection.ondatachannel = (event) => {
+      console.log('[WebRTC] DataChannel alındı:', event.channel.label);
+      this.dataChannel = event.channel;
+      this.setupDataChannel(this.dataChannel);
+    };
 
     // ICE Adaylarını sunucu üzerinden hedefe ilet
     this.peerConnection.onicecandidate = (event) => {
